@@ -1,0 +1,25 @@
+#paddleocr requirements
+streamlit
+paddleocr
+paddlepaddle
+Pillow
+PyMuPDF
+opencv-python
+numpy
+pdfplumber
+tabula-py
+python-docx
+pandas
+
+#Tesseract requirements
+
+streamlit
+pytesseract
+pillow
+pymupdf
+opencv-python
+numpy
+tabula-py
+pdfplumber
+pandas
+python-docx
