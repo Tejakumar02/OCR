@@ -58,8 +58,8 @@ Tesseract OCR installed on system (for CPU version)
 Method 1: PaddleOCR Version (GPU Recommended)
 bash
 # Clone the repository
-git clone (https://github.com/Tejakumar02/OCR/)
-cd smart-pdf-extractor
+git clone (https://github.com/Tejakumar02/OCR.git)
+
 
 # Create virtual environment (optional)
 python -m venv venv
