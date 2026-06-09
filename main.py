@@ -31,7 +31,7 @@ st.markdown("""
 # Initialize PaddleOCR (enable GPU if available)
 ocr = PaddleOCR(use_angle_cls=True, lang="en")
 
-st.title(" 📑 Smart PDF Extractor with OCR & AI")
+st.title(" 📑 Smart PDF Extractor with OCR (GPU Code)")
 
 uploaded_file = st.file_uploader(" 📤 Upload a PDF file 📂", type=["pdf"])
 
