@@ -24,9 +24,7 @@ The CPU version (Tesseract) is designed for zero-GPU deployment — useful for a
 <img width="1920" height="1080" alt="Screenshot 2025-04-14 121744" src="https://github.com/user-attachments/assets/781f57ee-e43e-4ac5-be05-265e8aa1ae07" />
 <img width="1920" height="1080" alt="Screenshot 2025-04-14 121815" src="https://github.com/user-attachments/assets/47047286-c40d-4f08-beb0-013359b1f732" />
 ## Remaining Screeshots are same as Paddle Ocr may be sightly change
-
-
-Both versions produce identical output formats and follow the same processing pipeline. Choose based on your hardware constraints.
+### Both versions produce identical output formats and follow the same processing pipeline. Choose based on your hardware constraints.
 
 ## Performance
 
