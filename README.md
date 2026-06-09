@@ -35,7 +35,7 @@ Tested on an 18MB PDF document with 31 pages:
 | Version | Engine | Pages | File Size | Total Extraction Time |
 |---|---|---|---|---|
 | main.py (GPU) | PaddleOCR | 31 | 18 MB | ~17.76 seconds |
-| ui.py (CPU) | Tesseract | 31 | 18 MB | ~42.89 seconds |
+| app.py (CPU) | Tesseract | 31 | 18 MB | ~42.89 seconds |
 
 GPU version is **2.4x faster** than CPU version. Times vary ±2–3 seconds depending on PDF complexity and content density.
 
@@ -115,7 +115,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install streamlit paddleocr paddlepaddle Pillow PyMuPDF opencv-python numpy pdfplumber tabula-py python-docx pandas
 ```
 
-**CPU Version (Tesseract) — ui.py**
+**CPU Version (Tesseract) — app.py**
 
 ```bash
 pip install streamlit pytesseract pillow pymupdf opencv-python numpy tabula-py pdfplumber pandas python-docx
@@ -139,7 +139,7 @@ brew install tesseract
 streamlit run main.py
 
 # CPU version
-streamlit run ui.py
+streamlit run app.py
 ```
 
 Once running:
