@@ -1,233 +1,263 @@
-Smart PDF Extractor with OCR & AI
-📋 Overview
-Smart PDF Extractor is a comprehensive document processing tool that extracts text, tables, figures, and links from PDF documents using advanced OCR technology. The application supports both PaddleOCR (GPU-optimized) and Tesseract (CPU-based) engines for flexible deployment options.
+# Smart Document Extraction Pipeline — Dual OCR Engine (PaddleOCR GPU + Tesseract CPU)
 
-# install requirements.txt
-# pip install -r requirements.txt
-✨ Features
-🔤 Text Extraction
-Dual OCR Engines: Choose between PaddleOCR (GPU) and Tesseract (CPU)
+## Overview
 
-Multi-language Support: Primary support for English with extensible language options
+Smart Document Extraction Pipeline is a production-ready document processing tool that extracts text, tables, figures, and hyperlinks from PDF documents using parallel processing and dual OCR engine support — PaddleOCR for GPU environments and Tesseract for CPU-only deployments.
 
-Formula Conversion: Automatic conversion of mathematical formulas to LaTeX format
+This is not an "AI tool" — it is an intelligent document processing pipeline built with computer vision, OCR, and parallel processing. That distinction matters.
 
-URL Detection: Intelligent extraction of web links from text content
+## Why Two Versions?
 
-📊 Table Extraction
-Advanced table detection using pdfplumber and tabula-py
+The GPU version (PaddleOCR) is optimized for speed in environments with CUDA-compatible hardware. 
+<img width="1799" height="1015" alt="inital page" src="https://github.com/user-attachments/assets/d33ff365-4600-480e-b5bd-3d22e052b159" />
+<img width="1829" height="1030" alt="Screenshot 2025-04-20 144720" src="https://github.com/user-attachments/assets/5d46f741-addd-4c22-845c-f1f89e3ae54c" />
+<img width="1825" height="622" alt="Screenshot 2025-04-20 144849" src="https://github.com/user-attachments/assets/2d0376d8-fe46-437f-b341-630992ccb4c0" />
+<img width="1920" height="1080" alt="Extracted Text" src="https://github.com/user-attachments/assets/bbaffbef-3ca0-42e6-b3e5-e2968f9765b9" />
+<img width="1920" height="1080" alt="Extracted tables" src="https://github.com/user-attachments/assets/05f87852-0480-4083-9d8d-7c7663322655" />
+<img width="1768" height="937" alt="figure t" src="https://github.com/user-attachments/assets/8a17ed0b-bfa7-4867-85f1-c7d395aca2c9" />
+<img width="1768" height="937" alt="figure t" src="https://github.com/user-attachments/assets/f5dab920-c95d-4735-883b-6542be800899" />
+<img width="1920" height="1080" alt="links" src="https://github.com/user-attachments/assets/c7641ff3-4a51-47c3-9f27-28567ff7c5f3" />
+<img width="1816" height="678" alt="features" src="https://github.com/user-attachments/assets/e89a88a9-9b58-47d2-b5aa-de9cff91cb90" />
 
-Multi-page table extraction with page-wise organization
 
-Export tables to CSV format with pandas integration
+The CPU version (Tesseract) is designed for zero-GPU deployment — useful for air-gapped or resource-constrained environments where external dependencies are not allowed.
+<img width="1920" height="1080" alt="Screenshot 2025-04-14 121744" src="https://github.com/user-attachments/assets/781f57ee-e43e-4ac5-be05-265e8aa1ae07" />
+<img width="1920" height="1080" alt="Screenshot 2025-04-14 121815" src="https://github.com/user-attachments/assets/47047286-c40d-4f08-beb0-013359b1f732" />
+## Remaining Screeshots are same as Paddle Ocr may be sightly change
 
-🖼️ Figure/Image Detection
-Automatic figure detection using OpenCV contour analysis
 
-Cropped figure extraction with size filtering
+Both versions produce identical output formats and follow the same processing pipeline. Choose based on your hardware constraints.
 
-PNG format export for extracted images
+## Performance
 
-🔗 Link Extraction
-Comprehensive URL pattern matching
+Tested on an 18MB PDF document with 31 pages:
 
-Structured PDF link extraction via PyMuPDF
+| Version | Engine | Pages | File Size | Total Extraction Time |
+|---|---|---|---|---|
+| main.py (GPU) | PaddleOCR | 31 | 18 MB | ~17.76 seconds |
+| ui.py (CPU) | Tesseract | 31 | 18 MB | ~42.89 seconds |
 
-Combined text and structured link detection
+GPU version is **2.4x faster** than CPU version. Times vary ±2–3 seconds depending on PDF complexity and content density.
 
-📁 Multi-format Support
-Input Formats: PDF, PNG, JPG, JPEG, TXT, MD, DOCX
+---
 
-Output Formats: Markdown, CSV, PNG, DOCX, ZIP archives
+## Features
 
-Batch Processing: Simultaneous extraction of all content types
+**Text Extraction**
+- Dual OCR engines: PaddleOCR (GPU-accelerated) and Tesseract (CPU-based)
+- Automatic mathematical formula conversion to LaTeX format
+- Hyperlink extraction from both OCR text and embedded PDF structure
+- XML-safe sanitization of all extracted content — NULL bytes and control characters stripped before export
 
-🚀 Performance Optimizations
-Parallel processing with ThreadPoolExecutor
+**Table Extraction**
+- Structured table detection using pdfplumber and tabula-py
+- Page-wise table organization with CSV export via pandas
+- Escape character handling for special characters in table cells
 
-Progress tracking with real-time status updates
+**Figure Detection**
+- Automatic figure detection using OpenCV contour analysis with size filtering (min 100x100px)
+- Cropped figure export in PNG format
 
-Memory-efficient streaming for large files
+**Export Pipeline**
+- Extracted text as Markdown
+- Tables as CSV files packaged in ZIP archive
+- Figures as PNG files packaged in ZIP archive
+- Hyperlinks as TXT files packaged in ZIP archive
+- All content combined into a single compiled DOCX output
 
-🛠️ Installation
-Prerequisites
-Python 3.8 or higher
+**Performance**
+- Parallel content extraction using ThreadPoolExecutor — text, tables, and figures processed simultaneously per page
+- Real-time progress tracking via Streamlit frontend
+- Memory-efficient streaming for large files
 
-Tesseract OCR installed on system (for CPU version)
+---
 
-Method 1: PaddleOCR Version (GPU Recommended)
-bash
-# Clone the repository
+## Processing Pipeline
+
+```
+PDF Upload
+    ↓
+PyMuPDF page rendering
+    ↓
+ThreadPoolExecutor (parallel per page)
+    ├── OCR text (PaddleOCR / Tesseract)
+    ├── pdfplumber table extraction
+    └── OpenCV figure detection
+    ↓
+XML sanitization + formula conversion
+    ↓
+Multi-format export
+    ├── Markdown (text)
+    ├── CSV ZIP (tables)
+    ├── PNG ZIP (figures)
+    ├── TXT ZIP (links)
+    └── DOCX (all content combined)
+```
+
+---
+
+## Installation
+
+**Prerequisites**
+- Python 3.8 or higher
+- For GPU version: CUDA-compatible hardware with appropriate drivers
+- For CPU version: Tesseract OCR installed on system
+
+**GPU Version (PaddleOCR) — main.py**
+
+```bash
 git clone https://github.com/Tejakumar02/OCR.git
+cd OCR
 
-
-# Create virtual environment (optional)
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Install PaddleOCR requirements
 pip install streamlit paddleocr paddlepaddle Pillow PyMuPDF opencv-python numpy pdfplumber tabula-py python-docx pandas
-Method 2: Tesseract Version (CPU)
-bash
-# Install Tesseract requirements
+```
+
+**CPU Version (Tesseract) — ui.py**
+
+```bash
 pip install streamlit pytesseract pillow pymupdf opencv-python numpy tabula-py pdfplumber pandas python-docx
 
-# Install Tesseract OCR
+# Install Tesseract OCR engine
 # Ubuntu/Debian:
 sudo apt-get install tesseract-ocr
 
 # macOS:
 brew install tesseract
 
-# Windows: Download installer from https://github.com/UB-Mannheim/tesseract/wiki
-🚀 Usage
-Running the Application
-bash
-# For PaddleOCR version (GPU)
+# Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
+```
+
+---
+
+## Usage
+
+```bash
+# GPU version
 streamlit run main.py
 
-# For Tesseract version (CPU)
-streamlit run app.py
-User Interface
-Upload Document: Click the upload area to select PDF, image, or text files
+# CPU version
+streamlit run ui.py
+```
 
-Content Extraction: Press "Extract All Content" to process the document
+Once running:
+1. Upload a PDF, image, or text file using the upload area
+2. Click "Extract All Content" to process the document
+3. Preview extracted text, tables, figures, and links in the interface
+4. Download specific content types or everything as a single DOCX file
 
-Preview Results: View extracted text, tables, figures, and links in the interface
+**Supported input formats:** PDF, PNG, JPG, JPEG, TXT, MD, DOCX
 
-Download Options: Choose specific content types or download everything as a DOCX file
+**Supported output formats:** Markdown, CSV, PNG, DOCX, ZIP
 
-Output Options
-📄 Text: Markdown format with page separation
+---
 
-📊 Tables: CSV files packaged in ZIP archives
+## Key Components
 
-🖼️ Figures: PNG images in ZIP archives
+| Component | Library | Purpose |
+|---|---|---|
+| Document Parser | PyMuPDF (fitz) | PDF page rendering and embedded link extraction |
+| OCR Engine (GPU) | PaddleOCR | Text recognition with angle correction |
+| OCR Engine (CPU) | Tesseract | Text recognition — OEM 1, PSM 3 |
+| Table Extractor | pdfplumber + tabula-py | Structured table detection and CSV export |
+| Image Processor | OpenCV | Figure detection via contour analysis |
+| Output Generator | python-docx | Compiled DOCX document creation |
+| Frontend | Streamlit | Web interface with real-time progress tracking |
 
-🔗 Links: Text files with extracted URLs
+---
 
-📦 All Content: Combined DOCX document with all extracted content
+## Configuration
 
-🏗️ Architecture
+**PaddleOCR (GPU)**
+```python
+ocr = PaddleOCR(use_angle_cls=True, lang="en")
+```
 
-Key Components
-Document Parser: PyMuPDF for PDF processing
-
-OCR Engine: PaddleOCR/Tesseract for text recognition
-
-Table Extractor: pdfplumber and tabula-py for structured data
-
-Image Processor: OpenCV for figure detection and cropping
-
-Output Generator: python-docx for document creation
-
-Processing Pipeline
-text
-PDF Upload → Page Conversion → Parallel Extraction → Content Organization → Export
-     ↓             ↓                 ↓                     ↓                 ↓
-  File I/O    Image Rendering  Text/Tables/Figures    Data Structuring   Format Export
-
-⚙️ Configuration
-OCR Settings
-python
-
-# PaddleOCR Configuration
-ocr = PaddleOCR(use_angle_cls=True, lang="en", use_gpu=True)
-
-# Tesseract Configuration
+**Tesseract (CPU)**
+```python
 pytesseract.image_to_string(img, config='--oem 1 --psm 3 -l eng')
-Performance Tuning
-Adjust ThreadPoolExecutor max_workers based on system resources
+# OEM 1: LSTM engine — higher accuracy
+# PSM 3: Fully automatic page segmentation
+```
 
-Modify OpenCV contour detection thresholds for figure sensitivity
+**Figure Detection Threshold**
+```python
+# In detect_figures() — adjust w and h to control sensitivity
+if w > 100 and h > 100:
+```
+Increase thresholds to reduce false positives on dense documents. Decrease to capture smaller figures.
 
-Configure pdfplumber table extraction parameters for accuracy
+**CSV Export**
+```python
+df.to_csv(csv_buffer, index=False, escapechar='\\', quoting=1)
+# quoting=1 = csv.QUOTE_ALL — wraps every cell in quotes
+# escapechar handles remaining special character edge cases
+```
 
-📊 Performance Metrics
-Metric	PaddleOCR (GPU)	Tesseract (CPU)
-Text Extraction Speed	⚡ Very Fast	🐢 Moderate
-Accuracy	🎯 High	🎯 High
-Memory Usage	📈 Higher	📉 Lower
-Setup Complexity	🛠️ Moderate	🛠️ Simple
+---
 
-🐛 Known Issues & Solutions
-Common Problems
-Missing Text in Tables: Enable pdfplumber table extraction as fallback
+## Known Issues and Fixes Applied
 
-Poor Figure Detection: Adjust contour size thresholds in detect_figures()
+| Issue | Cause | Fix Applied |
+|---|---|---|
+| `_csv.Error: need to escape` | Special characters in table cells | Added `escapechar='\\', quoting=1` to all `df.to_csv()` calls |
+| `ValueError: XML NULL bytes` | Unsanitized OCR output written to DOCX | `sanitize_text()` applied to all table cell and header values before DOCX write |
+| Inflated timing display | Accumulating timer inside loop | Fixed to single `time.time() - start` measurement at end of pipeline |
 
-Memory Issues with Large PDFs: Implement chunk-based processing
+---
 
-OCR Accuracy Issues: Pre-process images with OpenCV (binarization, denoising)
+## Design Decisions
 
-Troubleshooting
-python
-# Enable debug logging
-import logging
-logging.basicConfig(level=logging.DEBUG)
+**Why parallel extraction?**
+Text, table, and figure extraction are independent operations per page. ThreadPoolExecutor allows all three to run concurrently, reducing total processing time proportional to available CPU cores.
 
-# Check OCR installation
-import pytesseract
-print(pytesseract.get_tesseract_version())
-🔧 Advanced Features
-Custom Processing
-python
-# Add custom preprocessing
-def preprocess_image(img):
-    # Add your custom image preprocessing here
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    return cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                                 cv2.THRESH_BINARY, 11, 2)
-Extending Language Support
-python
-# For PaddleOCR
-ocr = PaddleOCR(lang="ch", use_angle_cls=True)  # Chinese
+**Why pdfplumber alongside tabula-py?**
+pdfplumber handles complex table boundary detection better on irregular layouts. tabula-py is retained as a complementary fallback for edge cases.
 
-# For Tesseract
-pytesseract.image_to_string(img, lang='eng+fra+spa')  # Multiple languages
-📈 Future Enhancements
-Cloud storage integration (Google Drive, Dropbox)
+**Why DOCX as the combined output format?**
+DOCX preserves embedded images alongside text and tables in a single portable file — more useful for downstream human review than a ZIP archive of separate files.
 
-API endpoint for programmatic access
+**Why two separate files instead of one with a toggle?**
+PaddleOCR and Tesseract have different installation footprints and dependency chains. Keeping them in separate files means users can clone the repo and run only the version their hardware supports without installing unnecessary dependencies.
 
-Batch processing for multiple documents
+---
 
-Custom template-based extraction
+## Troubleshooting
 
-Machine learning for improved classification
+**Missing text in tables:** Ensure the PDF is not a scanned image-only document. pdfplumber requires selectable text for table extraction.
 
-Real-time collaboration features
+**Poor figure detection:** Adjust contour size thresholds in `detect_figures()` for documents with small diagrams or dense layouts.
 
-🤝 Contributing
-Fork the repository
+**Memory issues on large PDFs:** For files exceeding 50 pages, consider processing in chunks rather than loading all pages into memory at once.
 
-Create a feature branch (git checkout -b feature/AmazingFeature)
+**OCR accuracy on low-resolution scans:** Pre-process images with OpenCV binarization before passing to the OCR engine:
+```python
+gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+_, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+```
 
-Commit changes (git commit -m 'Add AmazingFeature')
+**PaddleOCR GPU not detected:** Verify CUDA installation with `nvidia-smi` and confirm paddlepaddle-gpu is installed instead of the CPU build.
 
-Push to branch (git push origin feature/AmazingFeature)
+---
 
-Open a Pull Request
+## Contributing
 
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'Add your feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Open a Pull Request
 
-🙏 Acknowledgments
-PaddlePaddle for OCR engine
+---
 
-Tesseract OCR for open-source OCR
+## License
 
-Streamlit for the web framework
+MIT License — see LICENSE file for details.
 
-All contributing libraries and their maintainers
+---
 
-📞 Support
-For issues, questions, or feature requests:
+## Acknowledgments
 
-Check existing Issues
-
-Create a new issue with detailed description
-
-Include sample files for reproduction when possible
-
-Note: GPU acceleration requires CUDA-compatible hardware and proper driver installation for PaddleOCR version. The Tesseract version is recommended for systems without GPU capabilities.
+PaddlePaddle for the OCR engine, Tesseract OCR for the open-source OCR implementation, Streamlit for the web framework, and all contributing libraries and their maintainers.
