@@ -54,9 +54,14 @@ def detect_figures(img_np):
 # Function to sanitize text for XML compatibility
 def sanitize_text(text):
     # Remove NULL bytes and control characters
-    sanitized_text = re.sub(r'[\x00-\x1F\x7F]', '', text)
-    return sanitized_text
-
+    if not isinstance(text, str):
+        text = str(text)
+    # Remove NULL bytes and non-XML-compatible control characters
+    # Keep: \t (tab), \n (newline), \r (carriage return) — XML allows these
+    text = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', text)
+    # Remove any remaining NULL bytes explicitly
+    text = text.replace('\x00', '')
+    return text
 # Function to convert formulas to LaTeX format
 def convert_formulas_to_latex(text):
     # Example: Replace simple patterns with LaTeX
@@ -164,13 +169,17 @@ if uploaded_file:
                     links = page.get_links()  # type: ignore
                     uri_list = [link.get('uri', '') for link in links if 'uri' in link]
                     links_per_page.append(uri_list)
-
+                    
             # Progress bar for content extraction
             st.write("Extracting text, tables, and figures... 🔍")
             progress_bar = st.progress(0)
             for page_number, image_data in enumerate(images, start=1):
+                page_start=time.time()
                 img = Image.open(io.BytesIO(base64.b64decode(image_data)))
                 img_np = np.array(img)
+                page_time = time.time() - page_start
+                #st.write(f"Page {page_number}: {page_time:.2f}s")
+                
 
                 # Use ThreadPoolExecutor to process text, tables, and figures in parallel
                 with ThreadPoolExecutor() as executor:
@@ -211,7 +220,9 @@ if uploaded_file:
 
                 # Update progress bar
                 progress_bar.progress(page_number / total_pages)
-
+            total_time = time.time() - text_start_time
+            #st.write(f"Page {page_number}: {page_time:.2f}s")
+            st.success(f"Total Extraction Time: {total_time:.2f} seconds")
             text_processing_time = time.time() - text_start_time
 
             # Preview Extracted Content
@@ -241,7 +252,7 @@ if uploaded_file:
                         st.write(f"- {link}")
 
             # Display extraction times
-            st.write(f"Text Extraction Time: {text_extraction_time:.2f} seconds ⏱️")
+            #st.write(f"Text Extraction Time: {text_extraction_time:.2f} seconds ⏱️")
             st.write(f"Total Content Extraction Time: {text_processing_time:.2f} seconds ⏱️")
 
             # Download Buttons
@@ -262,7 +273,7 @@ if uploaded_file:
                             df = pd.DataFrame(table)
                             # Save the DataFrame as a CSV file in the zip
                             csv_buffer = io.StringIO()
-                            df.to_csv(csv_buffer, index=False)
+                            df.to_csv(csv_buffer, index=False, escapechar='\\', quoting=1)
                             csv_buffer.seek(0)
                             zipf.writestr(f"Page_{page_number}Table{idx}.csv", csv_buffer.getvalue())
                     else:
@@ -331,12 +342,12 @@ if uploaded_file:
                         # Add the header row
                         for j in range(df.shape[1]):
                             header_value = str(df.columns[j]) if j < len(df.columns) else ""
-                            t.cell(0, j).text = header_value
+                            t.cell(0, j).text = sanitize_text(header_value)
                         # Add the rest of the data
                         for i in range(df.shape[0]):
                             for j in range(df.shape[1]):
                                 cell_value = str(df.values[i, j]) if df.values[i, j] is not None else ""
-                                t.cell(i + 1, j).text = cell_value
+                                t.cell(i + 1, j).text = sanitize_text(cell_value)
                 else:
                     # Sanitize the error message or non-table content
                     sanitized_tables = sanitize_text(content["tables"])
