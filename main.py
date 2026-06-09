@@ -61,7 +61,14 @@ def detect_figures(img_np):
 
 # Sanitize text for compatibility
 def sanitize_text(text):
-    return re.sub(r'[\x00-\x1F\x7F]', '', text)
+    if not isinstance(text, str):
+        text = str(text)
+    # Remove NULL bytes and non-XML-compatible control characters
+    # Keep: \t (tab), \n (newline), \r (carriage return) — XML allows these
+    text = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', text)
+    # Remove any remaining NULL bytes explicitly
+    text = text.replace('\x00', '')
+    return text
 
 # Convert formulas to LaTeX
 def convert_formulas_to_latex(text):
@@ -126,6 +133,8 @@ if uploaded_file:
         for page_number, image_data in enumerate(images, start=1):
             img = Image.open(io.BytesIO(base64.b64decode(image_data)))
             img_np = np.array(img)
+            page_time=time.time()
+            #st.write(f"Page {page_number}: {page_time:.2f}s")
 
             with ThreadPoolExecutor() as executor:
                 future_text = executor.submit(extract_text, img)
@@ -158,7 +167,9 @@ if uploaded_file:
             progress_bar.progress(page_number / total_pages)
 
         text_processing_time = time.time() - text_start_time
+        total_time=time.time()-text_start_time
 
+        st.success(f"Total Extraction Time: {total_time:.2f} seconds")
         st.subheader("📝 Extracted Text")
         st.markdown(text_content)
 
@@ -184,7 +195,7 @@ if uploaded_file:
                 for link in links:
                     st.write(f"- {link}")
 
-        st.success(f"✅ Text Extraction Time: {text_extraction_time:.2f} seconds ⏱️")
+        #st.success(f"✅ Text Extraction Time: {text_extraction_time:.2f} seconds ⏱️")
         st.success(f"⏱ Total Content Extraction Time: {text_processing_time:.2f} seconds ⏱️")
 
         st.download_button(" 📥 Download Extracted Text 💾", text_content, "extracted_text.md", "text/markdown")
@@ -196,7 +207,7 @@ if uploaded_file:
                     for idx, table in enumerate(tables, start=1):
                         df = pd.DataFrame(table)
                         csv_buffer = io.StringIO()
-                        df.to_csv(csv_buffer, index=False)
+                        df.to_csv(csv_buffer, index=False, escapechar='\\', quoting=1)
                         csv_buffer.seek(0)
                         zipf.writestr(f"Page_{page_number}Table{idx}.csv", csv_buffer.getvalue())
                 else:
@@ -248,12 +259,12 @@ if uploaded_file:
                     # Add the header row
                     for j in range(df.shape[1]):
                         header_value = str(df.columns[j]) if j < len(df.columns) else ""
-                        t.cell(0, j).text = header_value
+                        t.cell(0, j).text = sanitize_text(header_value)
                     # Add the rest of the data
                     for i in range(df.shape[0]):
                         for j in range(df.shape[1]):
                             cell_value = str(df.values[i, j]) if df.values[i, j] is not None else ""
-                            t.cell(i + 1, j).text = cell_value
+                            t.cell(i + 1, j).text = sanitize_text(cell_value)
             else:
                 # Sanitize the error message or non-table content
                 sanitized_tables = sanitize_text(content["tables"])
